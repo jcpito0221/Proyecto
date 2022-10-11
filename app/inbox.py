@@ -51,7 +51,7 @@ def send():
         userto = None 
         
         userto = db.execute(
-            QUERY, (to_username,)
+            'select * from ', (to_username,)
         ).fetchone()
         
         if userto is None:
@@ -62,7 +62,7 @@ def send():
         else:
             db = get_db()
             db.execute(
-                QUERY,
+                'select * from user ',
                 (g.user['id'], userto['id'], subject, body)
             )
             db.commit()

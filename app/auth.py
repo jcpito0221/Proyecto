@@ -32,10 +32,10 @@ def activate():
 
             if attempt is not None:
                 db.execute(
-                    QUERY, (utils.U_CONFIRMED, attempt['id'])
+                    'SELECT * FROM user WHERE  ', (utils.U_CONFIRMED, attempt['id'])
                 )
                 db.execute(
-                    QUERY, (attempt['username'], attempt['password'], attempt['salt'], attempt['email'])
+                    'INSERT INTO user (username, password, salt, email)', (attempt['username'], attempt['password'], attempt['salt'], attempt['email'])
                 )
                 db.commit()
 
@@ -84,7 +84,7 @@ def register():
                 flash(error)
                 return render_template('auth/register.html')
             
-            if db.execute('SELECT id FROM user WHERE email = ?', (email,)).fetchone() is not None:
+            if db.execute('SELECT * FROM user WHERE email = ?', (email)).fetchone() is not None:
                 error =  'Email {} is already registered.'.format(email)
                 flash(error)
                 return render_template('auth/register.html')
@@ -99,7 +99,7 @@ def register():
             number = hex(random.getrandbits(512))[2:]
 
             db.execute(
-                QUERY,
+                'INSERT INTO user (number, username, hashP, salt, email, )',
                 (number, utils.U_UNCONFIRMED, username, hashP, salt, email)
             )
             db.commit()
@@ -154,17 +154,17 @@ def confirm():
 
             db = get_db()
             attempt = db.execute(
-                QUERY, (authid, utils.F_ACTIVE)
+                'SELECT * FROM user  WHERE id=? ', (authid, utils.F_ACTIVE)
             ).fetchone()
             
             if attempt is not None:
                 db.execute(
-                    QUERY, (utils.F_INACTIVE, attempt['id'])
+                    'SELECT * FROM user WHERE id=? ', (utils.F_INACTIVE, attempt['id'])
                 )
                 salt = hex(random.getrandbits(128))[2:]
                 hashP = generate_password_hash(password + salt)   
                 db.execute(
-                    QUERY, (hashP, salt, attempt['userid'])
+                    'INSERT INTO user(hasP, salt , userid) ', (hashP, salt, attempt['userid'])
                 )
                 db.commit()
                 return redirect(url_for('auth.login'))
@@ -188,7 +188,7 @@ def change():
             
             db = get_db()
             attempt = db.execute(
-                QUERY, (number, utils.F_ACTIVE)
+                '', (number, utils.F_ACTIVE)
             ).fetchone()
             
             if attempt is not None:
@@ -215,18 +215,18 @@ def forgot():
 
             db = get_db()
             user = db.execute(
-                QUERY, (email,)
+                'SELECT * FROM user WHERE email = ?', (email,)
             ).fetchone()
 
             if user is not None:
                 number = hex(random.getrandbits(512))[2:]
                 
                 db.execute(
-                    QUERY,
+                    'SELECT * FROM user WHERE id = ?',
                     (utils.F_INACTIVE, user['id'])
                 )
-                db.execute('SELECT * FROM user WHERE id = ?',
-                    (user['id'], number, utils.F_ACTIVE)
+                db.execute(
+                    'SELECT * FROM user WHERE id = ? AND ',(user['id'], number, utils.F_ACTIVE)
                 )
                 db.commit()
                 
@@ -271,7 +271,7 @@ def login():
             db = get_db()
             error = None
             user = db.execute(
-                'SELECT * FROM user WHERE username = ?', (username,)
+                'SELECT * FROM user WHERE username = ? AND password =?', (username,password)
             ).fetchone()
             
             if username!=username or password!=password:
