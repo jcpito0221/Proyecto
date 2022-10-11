@@ -27,7 +27,7 @@ def activate():
             
             db = get_db()
             attempt = db.execute(
-                QUERY, (number, utils.U_UNCONFIRMED)
+                'SELECT id FROM user WHERE username = ?', (number, utils.U_UNCONFIRMED)
             ).fetchone()
 
             if attempt is not None:
@@ -80,7 +80,7 @@ def register():
                 return render_template('auth/register.html')
             
             if ((not email) or (not utils.isEmailValid(email))):
-                error =  'Email address invalid.'
+                error =  'Email address invalid.' 
                 flash(error)
                 return render_template('auth/register.html')
             
@@ -281,25 +281,25 @@ def login():
 
             if error is None:
                 session.clear()
-                session['user_id'] = user[?]
+                session['user_id'] = user['user_id']
                 return redirect(url_for('inbox.show'))
 
             flash(error)
 
-        return render_template(TEMP)
+        return render_template('auth/login.html')
     except:
         return render_template('auth/login.html')
         
 
 @bp.before_app_request
 def load_logged_in_user():
-    user_id = session.get(?)
+    user_id = session.get('user_id ')
 
     if user_id is None:
         g.user = None
     else:
         g.user = get_db().execute(
-            QUERY, (user_id,)
+            'select * from user where user_id = ?', (user_id,)
         ).fetchone()
 
         
